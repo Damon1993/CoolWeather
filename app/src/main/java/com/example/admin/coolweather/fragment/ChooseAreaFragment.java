@@ -1,6 +1,7 @@
 package com.example.admin.coolweather.fragment;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.admin.coolweather.R;
+import com.example.admin.coolweather.activity.MainActivity;
+import com.example.admin.coolweather.activity.WeatherActivity;
 import com.example.admin.coolweather.db.City;
 import com.example.admin.coolweather.db.County;
 import com.example.admin.coolweather.db.Province;
@@ -88,6 +91,21 @@ public class ChooseAreaFragment extends android.support.v4.app.Fragment {
                 } else if (currentLevel == LEVEL_CITY) {
                     selectedCity = cityList.get(position);
                     quertCountys();
+                }else if (currentLevel == LEVEL_COUNTY){
+                    String weatherId = countyList.get(position).getWeatherId();
+                    if (getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weather_id",weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    }else if (getActivity() instanceof WeatherActivity){
+                        WeatherActivity activity = (WeatherActivity) getActivity();
+                        activity.drawerLayout.closeDrawers();
+                        activity.swipeRefresh.setRefreshing(true);
+                        activity.requestWeather(weatherId);
+
+                    }
+
                 }
 
 
@@ -177,7 +195,6 @@ public class ChooseAreaFragment extends android.support.v4.app.Fragment {
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -190,7 +207,6 @@ public class ChooseAreaFragment extends android.support.v4.app.Fragment {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-
                 String responseText = response.body().string();
                 boolean result = false;
                 if ("province".equals(type)){
@@ -214,16 +230,10 @@ public class ChooseAreaFragment extends android.support.v4.app.Fragment {
                             }
                         }
                     });
-
-
-
                 }
-
             }
         });
-
     }
-
 
     private void showProgressDialog(){
 
